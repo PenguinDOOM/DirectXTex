@@ -21,6 +21,8 @@ endif()
 
 option(BUILD_TOOLS "Build tex command-line tools" ON)
 
+option(BUILD_TEXCONV_DLL "Build texconv as a DLL for P/Invoke" OFF)
+
 option(BUILD_SHARED_LIBS "Build DirectXTex as a shared library" OFF)
 
 option(BUILD_SAMPLE "Build DDSView sample (requires fxc.exe)" ON)
@@ -493,6 +495,23 @@ if(BUILD_TOOLS AND BUILD_DX11 AND WIN32)
   target_link_libraries(texconv PRIVATE ${PROJECT_NAME} ole32.lib shell32.lib version.lib)
   source_group(texconv REGULAR_EXPRESSION Texconv/*.*)
   list(APPEND TOOL_EXES texconv)
+endif()
+
+# Build texconv as a DLL for P/Invoke from C#
+if(BUILD_TEXCONV_DLL AND BUILD_DX11 AND WIN32)
+  add_library(texconv_dll SHARED
+    Texconv/texconv.cpp
+    Texconv/TexconvAPI.cpp
+    Texconv/TexconvAPI.h
+    Texconv/texconv.rc
+    Common/CmdLineHelpers.h
+    Texconv/ExtendedBMP.cpp
+    Texconv/PortablePixMap.cpp)
+  target_compile_features(texconv_dll PRIVATE cxx_std_17)
+  target_compile_definitions(texconv_dll PRIVATE TEXCONV_DLL_EXPORTS)
+  target_link_libraries(texconv_dll PRIVATE ${PROJECT_NAME} ole32.lib shell32.lib version.lib)
+  set_target_properties(texconv_dll PROPERTIES OUTPUT_NAME "texconv")
+  source_group(texconv_dll REGULAR_EXPRESSION Texconv/*.*)
 endif()
 
 if(BUILD_TOOLS AND WIN32)
