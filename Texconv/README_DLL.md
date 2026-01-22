@@ -59,16 +59,16 @@ TexconvWrapper.TexconvOptions options = new TexconvWrapper.TexconvOptions();
 TexconvWrapper.TexconvInitOptions(ref options);
 
 // Configure conversion
-options.InputFile = "Assets/Textures/MyTexture.png";
-options.OutputDir = "Assets/StreamingAssets/Textures";
-options.Format = "BC7_UNORM_SRGB";
-options.FileType = "DDS";
-options.MipLevels = 0; // Generate full mipmap chain
-options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
+options.inputFile = "Assets/Textures/MyTexture.png";
+options.outputDir = "Assets/StreamingAssets/Textures";
+options.format = "BC7_UNORM_SRGB";
+options.fileType = "DDS";
+options.mipLevels = 0; // Generate full mipmap chain
+options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
 
-// For BC compression options, use the CompressionMode field:
+// For BC compression options, use the compressionMode field:
 // "d" for dither, "u" for uniform, "q" for quick (BC7), "x" for 3 subsets (BC7)
-options.CompressionMode = "d"; // Enable dithering for BC compression
+options.compressionMode = "d"; // Enable dithering for BC compression
 
 // Perform conversion
 int result = TexconvWrapper.TexconvConvertFile(ref options);
@@ -147,7 +147,7 @@ string GetLastErrorString();
 Combine flags using bitwise OR:
 
 ```csharp
-options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE | 
+options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE | 
                   TexconvWrapper.TEXCONV_OPT_FORCE_SRGB;
 ```
 
@@ -177,7 +177,7 @@ BC compression behavior is controlled via the `CompressionMode` field. Combine c
 
 Example:
 ```csharp
-options.CompressionMode = "du"; // Dithering with uniform weighting
+options.compressionMode = "du"; // Dithering with uniform weighting
 ```
 
 ## Unity Editor Integration Example
@@ -215,12 +215,12 @@ public class TextureConverter : EditorWindow
         TexconvWrapper.TexconvOptions options = new TexconvWrapper.TexconvOptions();
         TexconvWrapper.TexconvInitOptions(ref options);
 
-        options.InputFile = absoluteInputPath;
-        options.OutputDir = outputDir;
-        options.Format = "BC7_UNORM_SRGB";
-        options.FileType = "DDS";
-        options.MipLevels = 0;
-        options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
+        options.inputFile = absoluteInputPath;
+        options.outputDir = outputDir;
+        options.format = "BC7_UNORM_SRGB";
+        options.fileType = "DDS";
+        options.mipLevels = 0;
+        options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
 
         // Convert
         int result = TexconvWrapper.TexconvConvertFile(ref options);

@@ -62,64 +62,64 @@ namespace DirectXTex
         {
             // Input/Output
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string InputFile;
+            public string inputFile;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string OutputFile;
+            public string outputFile;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string OutputDir;
+            public string outputDir;
 
             // Size
-            public int Width;
-            public int Height;
-            public int MipLevels;
+            public int width;
+            public int height;
+            public int mipLevels;
 
             // Format
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string Format;
+            public string format;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string FileType;
+            public string fileType;
 
             // Filters
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string Filter;
+            public string filter;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string SrgbIn;
+            public string srgbIn;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string SrgbOut;
+            public string srgbOut;
 
             // Options flags
-            public ulong Options;
+            public ulong options;
 
             // Compression
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string CompressionMode;
+            public string compressionMode;
 
             // Feature level
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string FeatureLevel;
+            public string featureLevel;
 
             // Quality
-            public float WicQuality;
-            public float AlphaThreshold;
-            public float AlphaWeight;
+            public float wicQuality;
+            public float alphaThreshold;
+            public float alphaWeight;
 
             // GPU adapter
-            public int GpuAdapter;
+            public int gpuAdapter;
 
             // Additional options
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string Prefix;
+            public string prefix;
 
             [MarshalAs(UnmanagedType.LPWStr)]
-            public string Suffix;
+            public string suffix;
 
             // Reserved
-            public IntPtr Reserved;
+            public IntPtr reserved;
         }
 
         /// <summary>
@@ -170,11 +170,11 @@ namespace DirectXTex
             TexconvWrapper.TexconvInitOptions(ref options);
 
             // Set input and output
-            options.InputFile = "input.png";
-            options.OutputDir = "output";
-            options.Format = "BC3_UNORM";
-            options.FileType = "DDS";
-            options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
+            options.inputFile = "input.png";
+            options.outputDir = "output";
+            options.format = "BC3_UNORM";
+            options.fileType = "DDS";
+            options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
 
             // Convert the file
             int result = TexconvWrapper.TexconvConvertFile(ref options);
@@ -197,14 +197,14 @@ namespace DirectXTex
             TexconvWrapper.TexconvInitOptions(ref options);
 
             // Configure conversion
-            options.InputFile = "texture.tga";
-            options.OutputDir = "processed";
-            options.Width = 512;
-            options.Height = 512;
-            options.MipLevels = 0; // Generate full mipmap chain
-            options.Format = "BC7_UNORM";
-            options.FileType = "DDS";
-            options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE | 
+            options.inputFile = "texture.tga";
+            options.outputDir = "processed";
+            options.width = 512;
+            options.height = 512;
+            options.mipLevels = 0; // Generate full mipmap chain
+            options.format = "BC7_UNORM";
+            options.fileType = "DDS";
+            options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE | 
                               TexconvWrapper.TEXCONV_OPT_FORCE_SRGB;
 
             // Convert
@@ -237,12 +237,12 @@ namespace DirectXTex
             TexconvWrapper.TexconvOptions options = new TexconvWrapper.TexconvOptions();
             TexconvWrapper.TexconvInitOptions(ref options);
 
-            options.InputFile = unityTextureAssetPath;
-            options.OutputDir = outputPath;
-            options.Format = "BC7_UNORM_SRGB";
-            options.FileType = "DDS";
-            options.MipLevels = 0; // Full mipmap chain
-            options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
+            options.inputFile = unityTextureAssetPath;
+            options.outputDir = outputPath;
+            options.format = "BC7_UNORM_SRGB";
+            options.fileType = "DDS";
+            options.mipLevels = 0; // Full mipmap chain
+            options.options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
 
             int result = TexconvWrapper.TexconvConvertFile(ref options);
 

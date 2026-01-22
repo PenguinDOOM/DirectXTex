@@ -328,14 +328,9 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
             argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
         }
 
-        // Output file if specified (as suffix)
-        if (options->outputFile && options->outputFile[0])
-        {
-            argStorage.push_back(L"-o");
-            argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
-            argStorage.push_back(options->outputFile);
-            argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
-        }
+        // Note: outputFile is not used as texconv doesn't support specifying
+        // individual output file names via command line. Output directory (-o)
+        // is used instead, and the output filename is derived from input filename.
 
         // Input file (required)
         argStorage.push_back(options->inputFile);

@@ -35,7 +35,7 @@ typedef struct TexconvOptions
 {
     // Input/Output
     const wchar_t* inputFile;
-    const wchar_t* outputFile;
+    const wchar_t* outputFile;  // Reserved for future use; currently not used
     const wchar_t* outputDir;
 
     // Size
