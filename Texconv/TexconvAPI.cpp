@@ -13,6 +13,7 @@
 #include "TexconvAPI.h"
 
 #include <windows.h>
+#include <sal.h>
 #include <string>
 #include <vector>
 #include <mutex>
