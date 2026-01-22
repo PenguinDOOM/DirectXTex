@@ -31,6 +31,30 @@ static void SetLastError(const wchar_t* error)
     g_lastError = error ? error : L"";
 }
 
+// Helper function to convert narrow string to wide string
+static std::wstring NarrowToWide(const char* narrow)
+{
+    if (!narrow || !narrow[0])
+        return std::wstring();
+
+    // Get required buffer size
+    int size = MultiByteToWideChar(CP_UTF8, 0, narrow, -1, nullptr, 0);
+    if (size <= 0)
+        return L"[Error converting string]";
+
+    std::wstring wide(size - 1, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, narrow, -1, &wide[0], size);
+    return wide;
+}
+
+// Helper function to convert exception to wide string error message
+static void SetLastErrorFromException(const std::exception& e)
+{
+    std::wstring error = L"Exception: ";
+    error += NarrowToWide(e.what());
+    SetLastError(error.c_str());
+}
+
 // Initialize default options
 TEXCONV_API void TexconvInitOptions(TexconvOptions* options)
 {
@@ -262,12 +286,6 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
             argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
         }
 
-        if (options->options & TEXCONV_OPT_BC_DITHER)
-        {
-            argStorage.push_back(L"-dx10");
-            argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
-        }
-
         if (options->options & TEXCONV_OPT_USE_DX10)
         {
             argStorage.push_back(L"-dx10");
@@ -339,14 +357,7 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
     }
     catch (const std::exception& e)
     {
-        std::wstring error = L"Exception: ";
-        // Convert narrow string to wide string
-        const char* msg = e.what();
-        for (size_t i = 0; msg[i] != '\0'; ++i)
-        {
-            error += static_cast<wchar_t>(msg[i]);
-        }
-        SetLastError(error.c_str());
+        SetLastErrorFromException(e);
         return TEXCONV_ERROR_PROCESS_FAILED;
     }
     catch (...)
@@ -424,13 +435,7 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
     }
     catch (const std::exception& e)
     {
-        std::wstring error = L"Exception: ";
-        const char* msg = e.what();
-        for (size_t i = 0; msg[i] != '\0'; ++i)
-        {
-            error += static_cast<wchar_t>(msg[i]);
-        }
-        SetLastError(error.c_str());
+        SetLastErrorFromException(e);
         return TEXCONV_ERROR_PROCESS_FAILED;
     }
     catch (...)

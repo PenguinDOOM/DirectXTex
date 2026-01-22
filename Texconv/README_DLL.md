@@ -57,6 +57,10 @@ options.FileType = "DDS";
 options.MipLevels = 0; // Generate full mipmap chain
 options.Options = TexconvWrapper.TEXCONV_OPT_OVERWRITE;
 
+// For BC compression options, use the CompressionMode field:
+// "d" for dither, "u" for uniform, "q" for quick (BC7), "x" for 3 subsets (BC7)
+options.CompressionMode = "d"; // Enable dithering for BC compression
+
 // Perform conversion
 int result = TexconvWrapper.TexconvConvertFile(ref options);
 
@@ -153,6 +157,19 @@ Available flags:
 - `TEXCONV_OPT_FIT_POWEROF2` - Fit to power of 2 dimensions
 - `TEXCONV_OPT_INVERT_Y` - Invert Y channel (useful for normal maps)
 - `TEXCONV_OPT_RECONSTRUCT_Z` - Reconstruct Z channel from X and Y (normal maps)
+
+### Compression Modes
+
+BC compression behavior is controlled via the `CompressionMode` field. Combine characters for multiple options:
+- `"d"` - Enable dithering
+- `"u"` - Use uniform weighting instead of perceptual
+- `"q"` - Use BC7 quick mode (faster, lower quality)
+- `"x"` - Use BC7 3-subset mode
+
+Example:
+```csharp
+options.CompressionMode = "du"; // Dithering with uniform weighting
+```
 
 ## Unity Editor Integration Example
 
