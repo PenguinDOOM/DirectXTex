@@ -24,13 +24,22 @@ cmake --build build --config Release
 
 The DLL will be located in the build output directory.
 
+### Build Requirements
+
+**To build the DLL, you need:**
+- Visual Studio 2019/2022 with C++ Desktop Development workload
+- Windows 10 SDK (for headers and import libraries during compilation)
+- CMake 3.21+ (if using CMake build)
+
+**Note:** While the Windows 10 SDK is required to **build** the DLL, end users do **not** need the SDK installed to **run** the DLL. The DLL only depends on standard Windows system libraries that ship with Windows 10/11.
+
 ## Using the DLL from C#
 
 ### 1. Copy the DLL to your project
 
 For Unity:
 - Copy `texconv.dll` to `Assets/Plugins/x86_64/` for 64-bit builds
-- Copy any required DirectXTex DLL dependencies to the same directory
+- The DLL is self-contained; no additional DirectXTex DLL dependencies are needed
 
 For other C# projects:
 - Copy the DLL to your project's output directory
@@ -253,11 +262,33 @@ The DLL uses COM internally (for WIC support), so ensure COM is initialized on t
 - The DLL automatically initializes COM with `COINIT_MULTITHREADED`
 - In Unity, calls should typically be made from the main thread or from threads where COM has been initialized
 
+## Runtime Dependencies
+
+The texconv.dll has the following runtime dependencies:
+
+### Windows System DLLs (included with Windows 10+)
+These DLLs are part of the Windows operating system and do **not** require the Windows 10 SDK to be installed:
+- **ole32.dll** - COM support (Component Object Model)
+- **windowscodecs.dll** - WIC (Windows Imaging Component) 
+- **version.dll** - Version information APIs
+- **uuid.lib** - Statically linked into the DLL (no runtime dependency)
+
+All of these are standard Windows system libraries that ship with Windows 10 and Windows 11. End users do **not** need to install the Windows 10 SDK.
+
+### Visual C++ Runtime
+- **MSVC Runtime** (e.g., vcruntime140.dll, msvcp140.dll)
+- Usually already present on Windows systems
+- If not, can be installed via [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+
+### DirectXTex Library
+- The DirectXTex library is **statically linked** into the DLL
+- No separate DirectXTex.dll is required at runtime
+
 ## Limitations
 
 - The DLL must be compiled for the same architecture (x64/x86) as your application
-- Windows only (uses DirectX and WIC)
-- Requires Visual C++ Runtime to be installed on target machines
+- Windows 10 or later (uses WIC and DirectX APIs)
+- Requires Visual C++ Runtime (typically already installed on Windows systems)
 
 ## Troubleshooting
 
@@ -269,11 +300,22 @@ Ensure the DLL is in the correct location for your application:
 ### COM Initialization Errors
 If you see COM-related errors, ensure you're calling the DLL from the main thread in Unity.
 
-### Missing Dependencies
-The DLL requires:
-- DirectXTex.dll (if built as shared library)
-- Visual C++ Runtime (typically already installed)
-- Windows 10 SDK libraries
+### Missing DLL Dependencies
+If you get errors about missing DLLs:
+
+1. **Visual C++ Runtime not found**: Install the [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) for the version used to compile the DLL
+
+2. **System DLL errors**: This typically indicates the target system is missing Windows updates. The DLL requires Windows 10 or later with all system components:
+   - ole32.dll (COM support)
+   - windowscodecs.dll (Windows Imaging Component)
+   - version.dll (Version APIs)
+   
+   These are standard Windows components that should be present on all Windows 10+ systems.
+
+To verify dependencies of the compiled DLL, use the [Dependencies](https://github.com/lucasg/Dependencies) tool or Visual Studio's dumpbin utility:
+```
+dumpbin /DEPENDENTS texconv.dll
+```
 
 ## License
 

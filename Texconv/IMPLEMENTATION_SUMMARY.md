@@ -142,7 +142,13 @@ cmake --build build --config Release
 ### Platform Support
 - Windows x64 (primary target)
 - Can be extended to x86 if needed
-- Requires Windows 10 SDK
+- Requires Windows 10 SDK to **build** (not to run)
+
+### Dependencies
+- **DirectXTex library**: Statically linked into the DLL
+- **Windows system DLLs**: ole32.dll, windowscodecs.dll, version.dll (included with Windows 10/11)
+- **Visual C++ Runtime**: May need redistribution on target machines
+- **No SDK required at runtime**: End users do not need Windows 10 SDK installed
 
 ## Next Steps for Users
 
