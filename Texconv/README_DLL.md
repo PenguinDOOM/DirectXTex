@@ -27,7 +27,7 @@ The DLL will be located in the build output directory.
 ### Build Requirements
 
 **To build the DLL, you need:**
-- Visual Studio 2019/2022 with C++ Desktop Development workload
+- Visual Studio 2022 with C++ Desktop Development workload
 - Windows 10 SDK (for headers and import libraries during compilation)
 - CMake 3.21+ (if using CMake build)
 
