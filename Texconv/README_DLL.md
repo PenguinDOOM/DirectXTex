@@ -300,6 +300,38 @@ Ensure the DLL is in the correct location for your application:
 ### COM Initialization Errors
 If you see COM-related errors, ensure you're calling the DLL from the main thread in Unity.
 
+### Error Code 3 (TEXCONV_ERROR_PROCESS_FAILED)
+If you receive error code 3, the conversion process failed. To diagnose:
+
+1. **Check the error message**: Call `TexconvGetLastError()` or `TexconvWrapper.GetLastErrorString()` to see the detailed error message with exit code
+2. **Verify file paths**: Ensure input file path is absolute or relative to Unity's working directory (typically the project root)
+3. **Check file exists**: Verify the input file exists and is accessible
+4. **Verify output directory**: Ensure the output directory exists or can be created
+5. **Check file format**: Verify the input file format is supported (PNG, JPG, TGA, BMP, DDS, etc.)
+6. **Test with absolute paths**: Use `System.IO.Path.GetFullPath()` to convert relative paths to absolute paths
+
+Example with error handling:
+```csharp
+var options = new TexconvWrapper.TexconvOptions();
+TexconvWrapper.TexconvInitOptions(ref options);
+
+// Use absolute paths
+options.inputFile = System.IO.Path.GetFullPath("Assets/Textures/MyTexture.png");
+options.outputDir = System.IO.Path.GetFullPath("Assets/StreamingAssets/DDS");
+
+// Ensure output directory exists
+System.IO.Directory.CreateDirectory(options.outputDir);
+
+options.format = "BC7_UNORM_SRGB";
+options.fileType = "DDS";
+
+int result = TexconvWrapper.TexconvConvertFile(ref options);
+if (result != TexconvWrapper.TEXCONV_SUCCESS)
+{
+    Debug.LogError($"Conversion failed with code {result}: {TexconvWrapper.GetLastErrorString()}");
+}
+```
+
 ### Missing DLL Dependencies
 If you get errors about missing DLLs:
 

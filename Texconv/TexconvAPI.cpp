@@ -346,7 +346,10 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         }
         else
         {
-            SetLastError(L"Texture conversion failed");
+            // Provide more detailed error message with the exit code
+            wchar_t errorMsg[256];
+            swprintf_s(errorMsg, 256, L"Texture conversion failed with exit code %d. Check input file path and format.", result);
+            SetLastError(errorMsg);
             return TEXCONV_ERROR_PROCESS_FAILED;
         }
     }
@@ -424,7 +427,10 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
         }
         else
         {
-            SetLastError(L"Texture conversion failed");
+            // Provide more detailed error message with the exit code
+            wchar_t errorMsg[256];
+            swprintf_s(errorMsg, 256, L"Texture conversion failed with exit code %d. Check command-line arguments and file paths.", result);
+            SetLastError(errorMsg);
             return TEXCONV_ERROR_PROCESS_FAILED;
         }
     }
