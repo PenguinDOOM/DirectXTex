@@ -259,11 +259,33 @@ Common compression formats:
 ## Threading Considerations
 
 The DLL uses COM internally (for WIC support):
-- COM is initialized automatically on first call per thread
-- COM remains initialized for the thread's lifetime (not cleaned up between calls)
-- Safe to call from any thread in Unity
+- COM is initialized automatically as `COINIT_MULTITHREADED` on first call per thread
+- COM remains initialized for the thread's lifetime
+- Safe to call from worker threads
 - Multiple sequential calls on the same thread are fully supported
-- This behavior matches standard COM practices in DLLs
+
+### Unity Main Thread Consideration
+Unity's main thread initializes COM as `COINIT_APARTMENTTHREADED`. If you call the DLL from Unity's main thread, you may get error code 6 (TEXCONV_ERROR_INITIALIZATION) with a message about incompatible COM mode.
+
+**Solution**: Call the DLL from a background thread:
+```csharp
+using System.Threading.Tasks;
+
+Task.Run(() => {
+    var options = new TexconvWrapper.TexconvOptions();
+    TexconvWrapper.TexconvInitOptions(ref options);
+    options.inputFile = inputPath;
+    options.outputDir = outputDir;
+    options.format = "BC7_UNORM_SRGB";
+    options.fileType = "DDS";
+    
+    int result = TexconvWrapper.TexconvConvertFile(ref options);
+    if (result != TexconvWrapper.TEXCONV_SUCCESS)
+    {
+        Debug.LogError(TexconvWrapper.GetLastErrorString());
+    }
+});
+```
 
 ## Runtime Dependencies
 
@@ -299,6 +321,26 @@ All of these are standard Windows system libraries that ship with Windows 10 and
 Ensure the DLL is in the correct location for your application:
 - Unity: `Assets/Plugins/x86_64/` for 64-bit
 - Other: Same directory as executable or in PATH
+
+### Error Code 6 (TEXCONV_ERROR_INITIALIZATION)
+If you receive error code 6 with a message about "COM already initialized in incompatible mode":
+
+**Cause**: Unity's main thread initializes COM as APARTMENTTHREADED, but texconv requires MULTITHREADED.
+
+**Solution**: Call the DLL from a background thread using `Task.Run()` or `Thread`:
+```csharp
+using System.Threading.Tasks;
+
+Task.Run(() => {
+    var options = new TexconvWrapper.TexconvOptions();
+    TexconvWrapper.TexconvInitOptions(ref options);
+    options.inputFile = inputPath;
+    options.outputDir = outputDir;
+    options.format = "BC7_UNORM_SRGB";
+    options.fileType = "DDS";
+    int result = TexconvWrapper.TexconvConvertFile(ref options);
+}).Wait();
+```
 
 ### Error Code 3 (TEXCONV_ERROR_PROCESS_FAILED)
 If you receive error code 3, the conversion process failed. To diagnose:
