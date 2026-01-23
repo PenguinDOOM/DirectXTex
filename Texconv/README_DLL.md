@@ -259,11 +259,11 @@ Common compression formats:
 ## Threading Considerations
 
 The DLL uses COM internally (for WIC support):
-- The DLL **automatically initializes COM** per-thread with `COINIT_MULTITHREADED` on first call
-- COM is properly cleaned up when the function returns
+- COM is initialized automatically on first call per thread
+- COM remains initialized for the thread's lifetime (not cleaned up between calls)
 - Safe to call from any thread in Unity
-- Multiple sequential calls on the same thread are supported
-- Each thread manages its own COM context
+- Multiple sequential calls on the same thread are fully supported
+- This behavior matches standard COM practices in DLLs
 
 ## Runtime Dependencies
 

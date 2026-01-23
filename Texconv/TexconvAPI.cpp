@@ -23,49 +23,6 @@
 static std::mutex g_errorMutex;
 static std::wstring g_lastError;
 
-// COM initialization management for DLL
-// Each thread needs to initialize COM separately
-static thread_local bool g_comInitialized = false;
-
-// Helper class for COM initialization
-class ComInitializer
-{
-public:
-    ComInitializer() : m_needsCleanup(false)
-    {
-        if (!g_comInitialized)
-        {
-            HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-            if (SUCCEEDED(hr))
-            {
-                g_comInitialized = true;
-                m_needsCleanup = true;
-            }
-            else if (hr == RPC_E_CHANGED_MODE || hr == S_FALSE)
-            {
-                // COM already initialized in different mode or already initialized
-                // This is OK - we'll use existing COM context
-                g_comInitialized = true;
-                m_needsCleanup = false;
-            }
-        }
-    }
-
-    ~ComInitializer()
-    {
-        if (m_needsCleanup && g_comInitialized)
-        {
-            CoUninitialize();
-            g_comInitialized = false;
-        }
-    }
-
-    bool IsInitialized() const { return g_comInitialized; }
-
-private:
-    bool m_needsCleanup;
-};
-
 extern int __cdecl wmain(_In_ int argc, _In_z_count_(argc) wchar_t* argv[]);
 
 // Helper function to set the last error message
@@ -127,13 +84,9 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         return TEXCONV_ERROR_INVALID_ARGUMENTS;
     }
 
-    // Initialize COM for this thread if needed
-    ComInitializer comInit;
-    if (!comInit.IsInitialized())
-    {
-        SetLastError(L"Failed to initialize COM");
-        return TEXCONV_ERROR_INITIALIZATION;
-    }
+    // Note: COM initialization is handled by wmain
+    // We intentionally don't clean it up to avoid issues with repeated calls
+    // COM will be cleaned up when the thread exits
 
     try
     {
@@ -391,6 +344,9 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         // Call wmain with the constructed arguments
         int result = wmain(static_cast<int>(argv.size()), argv.data());
 
+        // Note: wmain initializes COM on first call and leaves it initialized
+        // This is intentional to support repeated calls on the same thread
+
         if (result == 0)
         {
             SetLastError(L"");
@@ -426,13 +382,9 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
         return TEXCONV_ERROR_INVALID_ARGUMENTS;
     }
 
-    // Initialize COM for this thread if needed
-    ComInitializer comInit;
-    if (!comInit.IsInitialized())
-    {
-        SetLastError(L"Failed to initialize COM");
-        return TEXCONV_ERROR_INITIALIZATION;
-    }
+    // Note: COM initialization is handled by wmain
+    // We intentionally don't clean it up to avoid issues with repeated calls
+    // COM will be cleaned up when the thread exits
 
     try
     {
@@ -479,6 +431,9 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
 
         // Call wmain
         int result = wmain(static_cast<int>(argv.size()), argv.data());
+
+        // Note: wmain initializes COM on first call and leaves it initialized
+        // This is intentional to support repeated calls on the same thread
 
         if (result == 0)
         {
