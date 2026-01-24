@@ -36,6 +36,8 @@ These components are designed to work without requiring any content from the leg
 
     It supports the same arguments as the _Texture Conversion Tool Extended_ (``texconvex.exe``) legacy DirectX SDK utility. The primary differences are the ``-10`` and ``-11`` arguments are not applicable and the filter names (``POINT``, ``LINEAR``, ``CUBIC``, ``FANT`` or ``BOX``, ``TRIANGLE``, ``*_DITHER``, ``*_DITHER_DIFFUSION``). This also includes support for the JPEG XR (HD Photo) bitmap format.
 
+  * **NEW:** Texconv can now be built as a DLL for use with Unity and other C# applications via P/Invoke. See [README_DLL.md](Texconv/README_DLL.md) for details on building and using the DLL version.
+
 * ``Texassemble\``
 
   * This DirectXTex sample is a [command-line utility](https://github.com/Microsoft/DirectXTex/wiki/Texassemble) for creating cubemaps, volume maps, or texture arrays from a set of individual input image files.

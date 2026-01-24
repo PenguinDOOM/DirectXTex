@@ -1289,8 +1289,15 @@ int __cdecl wmain(_In_ int argc, _In_z_count_(argc) wchar_t* argv[])
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     if (FAILED(hr))
     {
-        wprintf(L"Failed to initialize COM (%08X%ls)\n", static_cast<unsigned int>(hr), GetErrorDesc(hr));
-        return 1;
+        // RPC_E_CHANGED_MODE means COM is already initialized in a different threading model
+        // This can happen when called from a DLL wrapper that pre-initialized COM
+        // We can still proceed if COM is initialized, just in a different mode
+        if (hr != RPC_E_CHANGED_MODE)
+        {
+            wprintf(L"Failed to initialize COM (%08X%ls)\n", static_cast<unsigned int>(hr), GetErrorDesc(hr));
+            return 1;
+        }
+        // else: COM already initialized in different mode, continue anyway
     }
 
     // Process command line
@@ -3582,21 +3589,20 @@ int __cdecl wmain(_In_ int argc, _In_z_count_(argc) wchar_t* argv[])
                     case DXGI_FORMAT_BC7_UNORM_SRGB:
                         bc6hbc7 = true;
 
+                        // For DLL usage: Always try to create device if we don't have one
+                        // pDevice is local to wmain, so it's null on each DLL call
+                        if (!pDevice)
                         {
-                            static bool s_tryonce = false;
-
-                            if (!s_tryonce)
+                            if (!(dwOptions & (UINT64_C(1) << OPT_NOGPU)))
                             {
-                                s_tryonce = true;
-
-                                if (!(dwOptions & (UINT64_C(1) << OPT_NOGPU)))
+                                if (!CreateDevice(adapter, pDevice.GetAddressOf()))
                                 {
-                                    if (!CreateDevice(adapter, pDevice.GetAddressOf()))
+                                    static bool s_warned = false;
+                                    if (!s_warned)
+                                    {
+                                        s_warned = true;
                                         wprintf(L"\nWARNING: DirectCompute is not available, using BC6H / BC7 CPU codec\n");
-                                }
-                                else
-                                {
-                                    wprintf(L"\nWARNING: using BC6H / BC7 CPU codec\n");
+                                    }
                                 }
                             }
                         }
