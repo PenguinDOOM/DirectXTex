@@ -23,9 +23,6 @@
 static std::mutex g_errorMutex;
 static std::wstring g_lastError;
 
-// Track COM initialization state per thread
-static thread_local bool g_comInitializedByWrapper = false;
-
 extern int __cdecl wmain(_In_ int argc, _In_z_count_(argc) wchar_t* argv[]);
 
 // Helper function to set the last error message
@@ -59,49 +56,6 @@ static void SetLastErrorFromException(const std::exception& e)
     SetLastError(error.c_str());
 }
 
-// Helper function to ensure COM is initialized in MULTITHREADED mode for wmain
-// Returns true if ready to call wmain (COM initialized or will succeed in wmain)
-static bool EnsureComForWmain()
-{
-    if (g_comInitializedByWrapper)
-    {
-        // Already initialized by us on this thread
-        return true;
-    }
-
-    // Try to initialize COM in MULTITHREADED mode (same as wmain needs)
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    
-    if (SUCCEEDED(hr) || hr == S_FALSE)
-    {
-        // Successfully initialized or already initialized in compatible mode
-        g_comInitializedByWrapper = true;
-        return true;
-    }
-    else if (hr == RPC_E_CHANGED_MODE)
-    {
-        // COM already initialized in a different threading model (likely APARTMENTTHREADED from Unity)
-        // This will cause wmain's CoInitializeEx to fail
-        // We can't fix this without modifying wmain, so we'll let wmain fail and report the error
-        wchar_t errorMsg[256];
-        swprintf_s(errorMsg, 256, 
-            L"COM already initialized in incompatible mode (0x%08X). "
-            L"Unity may have initialized COM as APARTMENTTHREADED. "
-            L"Try calling from a worker thread or restart Unity editor.", 
-            static_cast<unsigned int>(hr));
-        SetLastError(errorMsg);
-        return false;
-    }
-    else
-    {
-        // Other COM initialization failure
-        wchar_t errorMsg[256];
-        swprintf_s(errorMsg, 256, L"Failed to initialize COM (0x%08X)", static_cast<unsigned int>(hr));
-        SetLastError(errorMsg);
-        return false;
-    }
-}
-
 // Initialize default options
 TEXCONV_API void TexconvInitOptions(TexconvOptions* options)
 {
@@ -130,11 +84,8 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         return TEXCONV_ERROR_INVALID_ARGUMENTS;
     }
 
-    // Ensure COM is initialized in the correct mode before calling wmain
-    if (!EnsureComForWmain())
-    {
-        return TEXCONV_ERROR_INITIALIZATION;
-    }
+    // Note: COM initialization is now handled gracefully by wmain
+    // wmain will accept COM already being initialized in a different threading model
 
     try
     {
@@ -430,11 +381,8 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
         return TEXCONV_ERROR_INVALID_ARGUMENTS;
     }
 
-    // Ensure COM is initialized in the correct mode before calling wmain
-    if (!EnsureComForWmain())
-    {
-        return TEXCONV_ERROR_INITIALIZATION;
-    }
+    // Note: COM initialization is now handled gracefully by wmain
+    // wmain will accept COM already being initialized in a different threading model
 
     try
     {

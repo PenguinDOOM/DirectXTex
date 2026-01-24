@@ -259,33 +259,13 @@ Common compression formats:
 ## Threading Considerations
 
 The DLL uses COM internally (for WIC support):
-- COM is initialized automatically as `COINIT_MULTITHREADED` on first call per thread
-- COM remains initialized for the thread's lifetime
-- Safe to call from worker threads
+- COM is automatically initialized or reused if already initialized
+- Safe to call from any thread, including Unity's main thread
 - Multiple sequential calls on the same thread are fully supported
+- The DLL gracefully handles COM being pre-initialized in any threading model
 
-### Unity Main Thread Consideration
-Unity's main thread initializes COM as `COINIT_APARTMENTTHREADED`. If you call the DLL from Unity's main thread, you may get error code 6 (TEXCONV_ERROR_INITIALIZATION) with a message about incompatible COM mode.
-
-**Solution**: Call the DLL from a background thread:
-```csharp
-using System.Threading.Tasks;
-
-Task.Run(() => {
-    var options = new TexconvWrapper.TexconvOptions();
-    TexconvWrapper.TexconvInitOptions(ref options);
-    options.inputFile = inputPath;
-    options.outputDir = outputDir;
-    options.format = "BC7_UNORM_SRGB";
-    options.fileType = "DDS";
-    
-    int result = TexconvWrapper.TexconvConvertFile(ref options);
-    if (result != TexconvWrapper.TEXCONV_SUCCESS)
-    {
-        Debug.LogError(TexconvWrapper.GetLastErrorString());
-    }
-});
-```
+### Unity Integration
+The DLL can be called directly from Unity's main thread or editor scripts without any special threading considerations. The underlying texconv code has been modified to gracefully handle COM already being initialized by Unity.
 
 ## Runtime Dependencies
 
@@ -322,26 +302,6 @@ Ensure the DLL is in the correct location for your application:
 - Unity: `Assets/Plugins/x86_64/` for 64-bit
 - Other: Same directory as executable or in PATH
 
-### Error Code 6 (TEXCONV_ERROR_INITIALIZATION)
-If you receive error code 6 with a message about "COM already initialized in incompatible mode":
-
-**Cause**: Unity's main thread initializes COM as APARTMENTTHREADED, but texconv requires MULTITHREADED.
-
-**Solution**: Call the DLL from a background thread using `Task.Run()` or `Thread`:
-```csharp
-using System.Threading.Tasks;
-
-Task.Run(() => {
-    var options = new TexconvWrapper.TexconvOptions();
-    TexconvWrapper.TexconvInitOptions(ref options);
-    options.inputFile = inputPath;
-    options.outputDir = outputDir;
-    options.format = "BC7_UNORM_SRGB";
-    options.fileType = "DDS";
-    int result = TexconvWrapper.TexconvConvertFile(ref options);
-}).Wait();
-```
-
 ### Error Code 3 (TEXCONV_ERROR_PROCESS_FAILED)
 If you receive error code 3, the conversion process failed. To diagnose:
 
@@ -351,8 +311,6 @@ If you receive error code 3, the conversion process failed. To diagnose:
 4. **Verify output directory**: Ensure the output directory exists (the DLL will try to create it if it doesn't exist)
 5. **Check file format**: Verify the input file format is supported (PNG, JPG, TGA, BMP, DDS, etc.)
 6. **Test with absolute paths**: Use `System.IO.Path.GetFullPath()` to convert relative paths to absolute paths
-
-**Note**: Previous versions had issues with COM initialization when making multiple sequential calls. This has been fixed - COM is now properly managed per-thread.
 
 Example with error handling:
 ```csharp

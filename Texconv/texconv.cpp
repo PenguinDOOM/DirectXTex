@@ -1289,8 +1289,15 @@ int __cdecl wmain(_In_ int argc, _In_z_count_(argc) wchar_t* argv[])
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     if (FAILED(hr))
     {
-        wprintf(L"Failed to initialize COM (%08X%ls)\n", static_cast<unsigned int>(hr), GetErrorDesc(hr));
-        return 1;
+        // RPC_E_CHANGED_MODE means COM is already initialized in a different threading model
+        // This can happen when called from a DLL wrapper that pre-initialized COM
+        // We can still proceed if COM is initialized, just in a different mode
+        if (hr != RPC_E_CHANGED_MODE)
+        {
+            wprintf(L"Failed to initialize COM (%08X%ls)\n", static_cast<unsigned int>(hr), GetErrorDesc(hr));
+            return 1;
+        }
+        // else: COM already initialized in different mode, continue anyway
     }
 
     // Process command line
