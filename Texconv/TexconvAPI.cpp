@@ -340,6 +340,25 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         argStorage.push_back(options->inputFile);
         argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
 
+        // Build command line string for debugging
+        std::wstring cmdLineDebug = L"texconv";
+        for (size_t i = 1; i < argv.size(); ++i)
+        {
+            cmdLineDebug += L" ";
+            // Add quotes if the argument contains spaces
+            std::wstring arg = argv[i];
+            if (arg.find(L' ') != std::wstring::npos)
+            {
+                cmdLineDebug += L"\"";
+                cmdLineDebug += arg;
+                cmdLineDebug += L"\"";
+            }
+            else
+            {
+                cmdLineDebug += arg;
+            }
+        }
+
         // Call wmain with the constructed arguments
         int result = wmain(static_cast<int>(argv.size()), argv.data());
 
@@ -353,10 +372,12 @@ TEXCONV_API int TexconvConvertFile(const TexconvOptions* options)
         }
         else
         {
-            // Provide more detailed error message with the exit code
-            wchar_t errorMsg[256];
-            swprintf_s(errorMsg, 256, L"Texture conversion failed with exit code %d. Check input file path and format.", result);
-            SetLastError(errorMsg);
+            // Provide detailed error message with the exit code and actual command line
+            std::wstring errorMsg = L"Texture conversion failed with exit code ";
+            errorMsg += std::to_wstring(result);
+            errorMsg += L".\nCommand line: ";
+            errorMsg += cmdLineDebug;
+            SetLastError(errorMsg.c_str());
             return TEXCONV_ERROR_PROCESS_FAILED;
         }
     }
@@ -427,6 +448,25 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
             argv.push_back(const_cast<wchar_t*>(argStorage.back().c_str()));
         }
 
+        // Build command line string for debugging
+        std::wstring cmdLineDebug = L"texconv";
+        for (size_t i = 1; i < argv.size(); ++i)
+        {
+            cmdLineDebug += L" ";
+            // Add quotes if the argument contains spaces
+            std::wstring arg = argv[i];
+            if (arg.find(L' ') != std::wstring::npos)
+            {
+                cmdLineDebug += L"\"";
+                cmdLineDebug += arg;
+                cmdLineDebug += L"\"";
+            }
+            else
+            {
+                cmdLineDebug += arg;
+            }
+        }
+
         // Call wmain
         int result = wmain(static_cast<int>(argv.size()), argv.data());
 
@@ -440,10 +480,12 @@ TEXCONV_API int TexconvConvertCommandLine(const wchar_t* commandLine)
         }
         else
         {
-            // Provide more detailed error message with the exit code
-            wchar_t errorMsg[256];
-            swprintf_s(errorMsg, 256, L"Texture conversion failed with exit code %d. Check command-line arguments and file paths.", result);
-            SetLastError(errorMsg);
+            // Provide detailed error message with the exit code and actual command line
+            std::wstring errorMsg = L"Texture conversion failed with exit code ";
+            errorMsg += std::to_wstring(result);
+            errorMsg += L".\nCommand line: ";
+            errorMsg += cmdLineDebug;
+            SetLastError(errorMsg.c_str());
             return TEXCONV_ERROR_PROCESS_FAILED;
         }
     }

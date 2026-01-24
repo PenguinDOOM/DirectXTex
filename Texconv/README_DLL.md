@@ -305,12 +305,19 @@ Ensure the DLL is in the correct location for your application:
 ### Error Code 3 (TEXCONV_ERROR_PROCESS_FAILED)
 If you receive error code 3, the conversion process failed. To diagnose:
 
-1. **Check the error message**: Call `TexconvGetLastError()` or `TexconvWrapper.GetLastErrorString()` to see the detailed error message with exit code
-2. **Verify file paths**: Ensure input file path is absolute or relative to Unity's working directory (typically the project root)
-3. **Check file exists**: Verify the input file exists and is accessible
-4. **Verify output directory**: Ensure the output directory exists (the DLL will try to create it if it doesn't exist)
-5. **Check file format**: Verify the input file format is supported (PNG, JPG, TGA, BMP, DDS, etc.)
-6. **Test with absolute paths**: Use `System.IO.Path.GetFullPath()` to convert relative paths to absolute paths
+1. **Check the error message**: Call `TexconvGetLastError()` or `TexconvWrapper.GetLastErrorString()` to see the detailed error message. **The error message now includes the actual command line** that was passed to texconv internally, making it easy to compare with working exe invocations.
+
+2. **Compare command lines**: If the same command works with `texconv.exe` but fails with the DLL, the error message will show you the exact command line the DLL used. Compare it character-by-character with your working exe command to spot differences.
+
+3. **Verify file paths**: Ensure input file path is absolute or relative to Unity's working directory (typically the project root)
+
+4. **Check file exists**: Verify the input file exists and is accessible
+
+5. **Verify output directory**: Ensure the output directory exists (the DLL will try to create it if it doesn't exist)
+
+6. **Check file format**: Verify the input file format is supported (PNG, JPG, TGA, BMP, DDS, etc.)
+
+7. **Test with absolute paths**: Use `System.IO.Path.GetFullPath()` to convert relative paths to absolute paths
 
 Example with error handling:
 ```csharp
